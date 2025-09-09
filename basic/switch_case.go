@@ -4,7 +4,7 @@ import "fmt"
 
 func main() {
 
-	// Switch statement
+	// // Switch statement
 	// switch expression {
 	// 	case value1:
 	// 		// Code to be executed if expression equals value1
