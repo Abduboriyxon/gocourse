@@ -1,40 +1,23 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 )
 
 func rootHandler (w http.ResponseWriter, r *http.Request) {
-	// fmt.Fprintf(w, "Hello root route!")
+
 	w.Write([]byte("Hello root route!"))
 	fmt.Println("Received request for root route")
 }
 
 func teachersHandler (w http.ResponseWriter, r *http.Request){
-	// teachers/{id}
-	// teachers/?key=value&query=value2&sortby=email&sortorder=ASC
 	switch r.Method {
 	case http.MethodGet:
-		fmt.Println(r.URL.Path)
-		path := strings.TrimPrefix(r.URL.Path, "/teachers/")
-		userID := strings.TrimSuffix(path, "/")
-
-		fmt.Println("The ID:", userID)
-
-		fmt.Println("Query params",r.URL.Query())
-		queryParams := r.URL.Query()
-		sortBy := queryParams.Get("sortby")
-		key := queryParams.Get("key")
-		sortOrder := queryParams.Get("sortorder")
-
-		fmt.Printf("Sort by: %s, Key: %s, Sort order: %s\n", sortBy, key, sortOrder)
-
-
 		w.Write([]byte("Hello GET Method on teachers route!"))
-		// fmt.Println("Received GET Method request for teachers route!")
+		fmt.Println("Received GET Method request for teachers route!")
 		return
 	case http.MethodPost:
 		w.Write([]byte("Hello POST Method on teachers route!"))
@@ -53,9 +36,6 @@ func teachersHandler (w http.ResponseWriter, r *http.Request){
 		fmt.Println("Received DELETE Method request for teachers route!")
 		return
 	}
-
-	w.Write([]byte("Hello teachers route!"))
-	fmt.Println("Received request for teachers route!")
 }
 
 func studentsHandler (w http.ResponseWriter, r *http.Request){
@@ -81,8 +61,6 @@ func studentsHandler (w http.ResponseWriter, r *http.Request){
 		fmt.Println("Received DELETE Method request for students route!")
 		return
 	}
-	w.Write([]byte("Hello students route!"))
-	fmt.Println("Received request for students route!")
 }
 
 func execsHandler(w http.ResponseWriter, r *http.Request){
@@ -108,24 +86,37 @@ func execsHandler(w http.ResponseWriter, r *http.Request){
 		fmt.Println("Received DELETE Method request for execs route!")
 		return
 	}
-	w.Write([]byte("Hello execs route!"))
-	fmt.Println("Received requst for execs route!")
 }
 
 func main() {
 
 	port := ":3000"
 
-	http.HandleFunc("/", rootHandler)
+	cert := "cert.pem"
+	key := "key.pem"
 
-	http.HandleFunc("/teachers/", teachersHandler)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/students/", studentsHandler)
+	mux.HandleFunc("/", rootHandler)
 
-	http.HandleFunc("/execs/", execsHandler)
+	mux.HandleFunc("/teachers/", teachersHandler)
+
+	mux.HandleFunc("/students/", studentsHandler)
+
+	mux.HandleFunc("/execs/", execsHandler)
+
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
+
+	server := &http.Server{
+		Addr: 	port,
+		Handler: mux,
+		TLSConfig: tlsConfig,
+	}
 
 	fmt.Println("Starting server on port", port)
-	err := http.ListenAndServe(port, nil)
+	err := server.ListenAndServeTLS(cert, key)
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
