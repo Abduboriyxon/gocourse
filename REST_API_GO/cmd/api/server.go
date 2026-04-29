@@ -97,11 +97,20 @@ func main() {
 
 	rl := mw.NewRateLimiter(5, time.Minute)
 
+	hppOptions := mw.HPPOptions{
+		CheckQuery: true,
+		CheckBody: true,
+		CheckBodyOnlyForContentType: "application/x-www-form-urlencoded",
+		Whitelist: []string{"sortBy", "sortOrder", "name", "age", "class"},
+	}
+
+	secureMux := mw.Cors(rl.Middleware(mw.ResponseTimeMiddleware(mw.SecurityHeaders(mw.Compression(mw.Hpp(hppOptions)(mux))))))
+
 	// create custom srever
 	server := &http.Server{
 		Addr: 	port,
 		// Handler: mux,
-		Handler: rl.Middleware(mw.Compression(mw.ResponseTimeMiddleware(mw.SecurityHeaders(mw.Cors(mux))))),
+		Handler: secureMux,
 		// Handler: mw.Cors(mux.ServeHTTP),
 		TLSConfig: tlsConfig,
 	}
