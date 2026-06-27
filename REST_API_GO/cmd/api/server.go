@@ -7,9 +7,16 @@ import (
 	"net/http"
 	mw "restapi/internal/api/middlewares"
 	routers "restapi/internal/api/router"
+	"restapi/internal/repository/sqlconnect"
 )
 
 func main() {
+
+	_, err := sqlconnect.ConnectDB("dbeaver_testdb")
+	if err != nil {
+		fmt.Println("Error-------:", err)
+		return
+	}
 
 	port := ":3000"
 
@@ -45,7 +52,7 @@ func main() {
 	}
 
 	fmt.Println("Starting server on port", port)
-	err := server.ListenAndServeTLS(cert, key)
+	err = server.ListenAndServeTLS(cert, key)
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
