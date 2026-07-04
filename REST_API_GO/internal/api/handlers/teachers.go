@@ -216,7 +216,7 @@ func addTeacherHandler(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(response)
 }
 
-// PUT /teacher/
+// PUT /teacher/{id}
 func updateTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
 	id, err := strconv.Atoi(idStr)
@@ -254,7 +254,7 @@ func updateTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedTeacher.ID = existingTeacher.ID
-	_, err = db.Exec("UPDATE first_name = ?, last_name = ?, email = ?, class = ?, subject = ? WHERE id = ?", updatedTeacher.FirstName, updatedTeacher.LastName, updatedTeacher.Email, updatedTeacher.Class, updatedTeacher.Subject, updatedTeacher.ID)
+	_, err = db.Exec("UPDATE teachers SET first_name = ?, last_name = ?, email = ?, class = ?, subject = ? WHERE id = ?", updatedTeacher.FirstName, updatedTeacher.LastName, updatedTeacher.Email, updatedTeacher.Class, updatedTeacher.Subject, updatedTeacher.ID)
 	if err != nil {
 		http.Error(w, "Error updating teacher", http.StatusInternalServerError)
 		return
