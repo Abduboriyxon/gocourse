@@ -235,7 +235,6 @@ func DeleteTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	var ids []int
 	err := json.NewDecoder(r.Body).Decode(&ids)
 	if err != nil {
-		log.Println(err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
@@ -256,3 +255,29 @@ func DeleteTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(response)
 }
+
+func GetStudentsByTeacherId(w http.ResponseWriter, r *http.Request) {
+	teacherId := r.PathValue("id")
+
+	var students []models.Student
+
+	students, err := sqlconnect.GetStudentsByTeacherIdFromDb(teacherId, students)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Status string `json:"status"`
+		Count int `json:"count"`
+		Data []models.Student `json:"data"`
+	}{
+		Status: "success",
+		Count: len(students),
+		Data: students,
+	}
+
+	w.Header().Set("Content-type","application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
