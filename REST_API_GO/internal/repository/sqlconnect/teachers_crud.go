@@ -11,21 +11,6 @@ import (
 	"strconv"
 )
 
-func isValidSortOrder(order string) bool {
-	return order == "asc" || order == "desc"
-}
-
-func isValidSortField(field string) bool {
-	validFields := map[string]bool{
-		"first_name": true,
-		"last_name": true,
-		"email": true,
-		"class": true,
-		"subject": true,
-		}	
-	return validFields[field]
-}
-
 func GetTeachersDbHandler(teachers []models.Teacher, r *http.Request) ([]models.Teacher, error) {
 	db, err := ConnectDB()
 	if err != nil {
