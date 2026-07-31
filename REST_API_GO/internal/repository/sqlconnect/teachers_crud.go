@@ -342,3 +342,21 @@ func GetStudentsByTeacherIdFromDb(teacherId string, students []models.Student) (
 	}
 	return students, nil
 }
+
+func GetStudentCountByTeacherIdFromDb(teacherId string) (int, error) {
+	db, err := ConnectDB()
+	if err != nil {
+		return 0, utils.ErrorHandler(err, "error retrieving data")
+	}
+	defer db.Close()
+
+	var studentCount int
+
+	query := `SELECT COUNT(*) FROM students WHERE class = (SELECT class FROM teachers WHERE id = ?)`
+
+	err = db.QueryRow(query, teacherId).Scan(&studentCount)
+	if err != nil {
+		return 0, utils.ErrorHandler(err, "error retrieving data")
+	}
+	return studentCount, nil
+}
