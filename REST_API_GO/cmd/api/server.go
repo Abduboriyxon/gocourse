@@ -47,7 +47,7 @@ func main() {
 
 	// secureMux := mw.Cors(rl.Middleware(mw.ResponseTimeMiddleware(mw.SecurityHeaders(mw.Compression(mw.Hpp(hppOptions)(mux))))))
 	// secureMux := utils.ApplyMiddlewares(mux, mw.Hpp(hppOptions), mw.Compression, mw.SecurityHeaders, mw.ResponseTimeMiddleware, rl.Middleware, mw.Cors)
-	router := routers.Router()
+	router := routers.MainRouter()
 	secureMux := mw.SecurityHeaders(router)
 
 	// create custom srever
