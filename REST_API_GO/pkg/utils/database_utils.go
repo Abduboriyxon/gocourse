@@ -24,20 +24,21 @@ func GenerateInsertQuery(tableName string, model interface{}) string {
 			placeholders += "?"
 		}
 	}
+	fmt.Printf("INSERT INTO %s (%s) VALUES (%s)\n", tableName, colomns, placeholders)
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", tableName, colomns, placeholders)
 }
 
-func GetStructValues(model interface{}) []interface{}{
+func GetStructValues(model interface{}) []interface{} {
 	modelValue := reflect.ValueOf(model)
 	modelType := modelValue.Type()
 	values := []interface{}{}
 	for i := 0; i < modelType.NumField(); i++ {
 		dbTag := modelType.Field(i).Tag.Get("db")
-		if dbTag != "" && dbTag != "id,omitempty"{
+		if dbTag != "" && dbTag != "id,omitempty" {
 			values = append(values, modelValue.Field(i).Interface())
 		}
 	}
-	log.Println("Values:",values)
+	log.Println("Values:", values)
 	return values
 }
 
@@ -66,9 +67,9 @@ func AddSorting(r *http.Request, query string) string {
 func AddFilters(r *http.Request, query string, args []interface{}) (string, []interface{}) {
 	params := map[string]string{
 		"first_name": "first_name",
-		"last_name": "last_name",
-		"class": "class",
-		"subject": "subject",
+		"last_name":  "last_name",
+		"class":      "class",
+		"subject":    "subject",
 	}
 
 	for param, dbField := range params {
@@ -88,10 +89,10 @@ func isValidSortOrder(order string) bool {
 func isValidSortField(field string) bool {
 	validFields := map[string]bool{
 		"first_name": true,
-		"last_name": true,
-		"email": true,
-		"class": true,
-		"subject": true,
-		}	
+		"last_name":  true,
+		"email":      true,
+		"class":      true,
+		"subject":    true,
+	}
 	return validFields[field]
 }

@@ -85,7 +85,7 @@ func AddStudentsDBHandler(newStudents []models.Student) ([]models.Student, error
 		if err != nil {
 			fmt.Println("-------", err.Error())
 			if strings.Contains(err.Error(), "a foreign key constraint fails (`school`.`students`, CONSTRAINT `1` FOREIGN KEY (`class`) REFERENCES `teachers` (`class`))") {
-			return nil, utils.ErrorHandler(err, "class/class teacher does not exist")
+				return nil, utils.ErrorHandler(err, "class/class teacher does not exist")
 			}
 			return nil, utils.ErrorHandler(err, "error adding data")
 		}
@@ -152,8 +152,6 @@ func PatchStudents(updates []map[string]interface{}) error {
 		var studentFromDb models.Student
 		err = tx.QueryRow("SELECT id, first_name, last_name, email, class FROM students WHERE id = ?", id).Scan(&studentFromDb.ID, &studentFromDb.FirstName, &studentFromDb.LastName, &studentFromDb.Email, &studentFromDb.Class)
 		if err != nil {
-
-
 
 			tx.Rollback()
 			if err == sql.ErrNoRows {
