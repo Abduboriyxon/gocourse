@@ -9,6 +9,7 @@ import (
 	mw "restapi/internal/api/middlewares"
 	routers "restapi/internal/api/router"
 	"restapi/internal/repository/sqlconnect"
+	"restapi/pkg/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -17,12 +18,12 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		return 
+		return
 	}
 
 	_, err = sqlconnect.ConnectDB()
 	if err != nil {
-		fmt.Println("Error-------:", err)
+		utils.ErrorHandler(err, "")
 		return
 	}
 
@@ -31,7 +32,6 @@ func main() {
 	cert := "cert.pem"
 	key := "key.pem"
 
-	
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 	}
@@ -52,7 +52,7 @@ func main() {
 
 	// create custom srever
 	server := &http.Server{
-		Addr: 	port,
+		Addr: port,
 		// Handler: mux,
 		Handler: secureMux,
 		// Handler: mw.Cors(mux.ServeHTTP),
