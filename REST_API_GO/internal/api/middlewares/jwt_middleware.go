@@ -53,10 +53,9 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		}
 
 		claims, ok := parsedToken.Claims.(jwt.MapClaims)
-		if ok {
-			fmt.Println(claims["uid"], claims["exp"], claims["role"])
-		} else {
+		if !ok {
 			http.Error(w, "Invalid login token", http.StatusUnauthorized)
+			log.Println("Invalid login token:", token.Value)
 			return
 		}
 
@@ -64,8 +63,6 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, ContextKey("expiresAt"), claims["exp"])
 		ctx = context.WithValue(ctx, ContextKey("username"), claims["user"])
 		ctx = context.WithValue(ctx, ContextKey("userId"), claims["uid"])
-
-		fmt.Println(ctx)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 		fmt.Println("Sent Response from JWT Middleware")
