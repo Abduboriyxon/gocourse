@@ -206,7 +206,7 @@ func DeleteOneExecHandler(w http.ResponseWriter, r *http.Request) {
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var req models.Exec
-	// Data valdation
+	// Data Validation
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -219,10 +219,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Search for user if user actually exist
+	// Search for user if user actually exists
 	user, err := sqlconnect.GetUserByUsername(req.Username)
 	if err != nil {
-		http.Error(w, "Invalid username or password", http.StatusNotFound)
+		http.Error(w, "Invalid username or password", http.StatusBadRequest)
 		return
 	}
 
@@ -232,19 +232,19 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//verify password
+	// verify password
 	err = utils.VerifyPassword(req.Password, user.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
-
-	// Generate token
-	tokenString, err := utils.SignToken(user.ID, req.Username, req.Role)
+	// Generate JWT Token
+	tokenString, err := utils.SignToken(user.ID, req.Username, user.Role)
 	if err != nil {
 		http.Error(w, "Could not create login token", http.StatusInternalServerError)
 		return
 	}
+
 	// Send token as a response or as a cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "Bearer",
@@ -257,14 +257,16 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "test",
-		Value:    "testing",
+		Name:     "testabc",
+		Value:    "testing1231",
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
 		Expires:  time.Now().Add(24 * time.Hour),
+		SameSite: http.SameSiteStrictMode,
 	})
 
+	// Response Body
 	w.Header().Set("Content-Type", "application/json")
 	response := struct {
 		Token string `json:"token"`
