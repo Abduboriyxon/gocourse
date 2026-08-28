@@ -7,31 +7,37 @@ import (
 	"net/http"
 	"restapi/internal/models"
 	"restapi/internal/repository/sqlconnect"
+	"restapi/pkg/utils"
 	"strconv"
 )
 
 func GetTeachersHandler(w http.ResponseWriter, r *http.Request) {
 
 	var teachers []models.Teacher
-	teachers, err := sqlconnect.GetTeachersDbHandler(teachers, r)
+	page, limit := utils.GetPaginationParams(r)
+	teachers, totalTeachers, err := sqlconnect.GetTeachersDbHandler(teachers, r, limit, page)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	response := struct {
-		Status string `json:"status"`
-		Count int `json:"count"`
-		Data []models.Teacher `json:"data"`
+		Status   string           `json:"status"`
+		Count    int              `json:"count"`
+		Page     int              `json:"page"`
+		PageSize int              `json:"page_size"`
+		Data     []models.Teacher `json:"data"`
 	}{
-		Status: "success",
-		Count: len(teachers),
-		Data: teachers,
+		Status:   "success",
+		Count:    totalTeachers,
+		Page:     page,
+		PageSize: limit,
+		Data:     teachers,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-	
+
 }
 
 func GetOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +59,7 @@ func GetOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(teacher)
 }
 
-func AddTeacherHandler(w http.ResponseWriter, r *http.Request){
+func AddTeacherHandler(w http.ResponseWriter, r *http.Request) {
 
 	var newTeachers []models.Teacher
 	var rawTeachers []map[string]interface{}
@@ -112,13 +118,13 @@ func AddTeacherHandler(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	response := struct {
-		Status string `json:"status"`
-		Count int `json:"count"`
-		Date []models.Teacher `json:"data"`
+		Status string           `json:"status"`
+		Count  int              `json:"count"`
+		Date   []models.Teacher `json:"data"`
 	}{
 		Status: "success",
-		Count: len(addedTeachers),
-		Date: addedTeachers,
+		Count:  len(addedTeachers),
+		Date:   addedTeachers,
 	}
 	json.NewEncoder(w).Encode(response)
 
@@ -194,7 +200,7 @@ func PatchOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updatedTeacher)
 
@@ -222,10 +228,10 @@ func DeleteOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := struct {
 		Status string `json:"status"`
-		ID int `json:"id"`
+		ID     int    `json:"id"`
 	}{
 		Status: "Teacher successfully deleted",
-		ID: id,
+		ID:     id,
 	}
 	json.NewEncoder(w).Encode(response)
 }
@@ -247,10 +253,10 @@ func DeleteTeachersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	response := struct {
-		Status string `json:"status"`
-		DeletedIDs []int `json:"deleted_ids"`
+		Status     string `json:"status"`
+		DeletedIDs []int  `json:"deleted_ids"`
 	}{
-		Status: "Teachers successfully deleted",
+		Status:     "Teachers successfully deleted",
 		DeletedIDs: deletedIds,
 	}
 	json.NewEncoder(w).Encode(response)
@@ -268,16 +274,16 @@ func GetStudentsByTeacherId(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := struct {
-		Status string `json:"status"`
-		Count int `json:"count"`
-		Data []models.Student `json:"data"`
+		Status string           `json:"status"`
+		Count  int              `json:"count"`
+		Data   []models.Student `json:"data"`
 	}{
 		Status: "success",
-		Count: len(students),
-		Data: students,
+		Count:  len(students),
+		Data:   students,
 	}
 
-	w.Header().Set("Content-type","application/json")
+	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -294,12 +300,12 @@ func GetStudentCountByTeacherId(w http.ResponseWriter, r *http.Request) {
 
 	response := struct {
 		Status string `json:"status"`
-		Count int `json:"count"`
+		Count  int    `json:"count"`
 	}{
 		Status: "success",
-		Count: studentCount,
+		Count:  studentCount,
 	}
 
-	w.Header().Set("Content-type","application/json")
+	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }

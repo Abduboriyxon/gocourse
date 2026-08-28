@@ -7,31 +7,40 @@ import (
 	"net/http"
 	"restapi/internal/models"
 	"restapi/internal/repository/sqlconnect"
+	"restapi/pkg/utils"
 	"strconv"
 )
 
 func GetStudentsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var students []models.Student
-	students, err := sqlconnect.GetStudentsDbHandler(students, r)
+	// url?limit=50&page=1
+	// database will leave/will not show calculated entries from the beginning, page - 1 * limit (1-1*50 = 0*50 = 0)
+	// page 2 , 2-1 *50 = 50, next 50 entries
+	page, limit := utils.GetPaginationParams(r)
+	students, totalStudents, err := sqlconnect.GetStudentsDbHandler(students, r, limit, page)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	response := struct {
-		Status string `json:"status"`
-		Count int `json:"count"`
-		Data []models.Student `json:"data"`
+		Status   string           `json:"status"`
+		Count    int              `json:"count"`
+		Page     int              `json:"page"`
+		PageSize int              `json:"page_size"`
+		Data     []models.Student `json:"data"`
 	}{
-		Status: "success",
-		Count: len(students),
-		Data: students,
+		Status:   "success",
+		Count:    totalStudents,
+		Page:     page,
+		PageSize: limit,
+		Data:     students,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-	
+
 }
 
 func GetOneStudentHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +62,7 @@ func GetOneStudentHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(student)
 }
 
-func AddStudentHandler(w http.ResponseWriter, r *http.Request){
+func AddStudentHandler(w http.ResponseWriter, r *http.Request) {
 
 	var newStudent []models.Student
 	var rawStudent []map[string]interface{}
@@ -112,13 +121,13 @@ func AddStudentHandler(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	response := struct {
-		Status string `json:"status"`
-		Count int `json:"count"`
-		Date []models.Student `json:"data"`
+		Status string           `json:"status"`
+		Count  int              `json:"count"`
+		Date   []models.Student `json:"data"`
 	}{
 		Status: "success",
-		Count: len(addedStudents),
-		Date: addedStudents,
+		Count:  len(addedStudents),
+		Date:   addedStudents,
 	}
 	json.NewEncoder(w).Encode(response)
 
@@ -194,7 +203,7 @@ func PatchOneStudentHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updatedStudent)
 
@@ -222,10 +231,10 @@ func DeleteOneStudentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := struct {
 		Status string `json:"status"`
-		ID int `json:"id"`
+		ID     int    `json:"id"`
 	}{
 		Status: "Student successfully deleted",
-		ID: id,
+		ID:     id,
 	}
 	json.NewEncoder(w).Encode(response)
 }
@@ -248,10 +257,10 @@ func DeleteStudentsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	response := struct {
-		Status string `json:"status"`
-		DeletedIDs []int `json:"deleted_ids"`
+		Status     string `json:"status"`
+		DeletedIDs []int  `json:"deleted_ids"`
 	}{
-		Status: "Students successfully deleted",
+		Status:     "Students successfully deleted",
 		DeletedIDs: deletedIds,
 	}
 	json.NewEncoder(w).Encode(response)

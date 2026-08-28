@@ -11,10 +11,10 @@ import (
 	"strconv"
 )
 
-func GetTeachersDbHandler(teachers []models.Teacher, r *http.Request) ([]models.Teacher, error) {
+func GetTeachersDbHandler(teachers []models.Teacher, r *http.Request, limit, page int) ([]models.Teacher, int, error) {
 	db, err := ConnectDB()
 	if err != nil {
-		return nil, utils.ErrorHandler(err, "error retrieving data")
+		return nil, 0, utils.ErrorHandler(err, "error retrieving data")
 	}
 
 	defer db.Close()
@@ -24,12 +24,17 @@ func GetTeachersDbHandler(teachers []models.Teacher, r *http.Request) ([]models.
 
 	query, args = utils.AddFilters(r, query, args)
 
+	// Add pagination
+	offset := (page - 1) * limit
+	query += " LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
+
 	query = utils.AddSorting(r, query)
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		fmt.Println(err)
-		return nil, utils.ErrorHandler(err, "error retrieving data")
+		return nil, 0, utils.ErrorHandler(err, "error retrieving data")
 	}
 	defer rows.Close()
 
@@ -38,11 +43,19 @@ func GetTeachersDbHandler(teachers []models.Teacher, r *http.Request) ([]models.
 		var teacher models.Teacher
 		err := rows.Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email, &teacher.Class, &teacher.Subject)
 		if err != nil {
-			return nil, utils.ErrorHandler(err, "error retrieving data")
+			return nil, 0, utils.ErrorHandler(err, "error retrieving data")
 		}
 		teachers = append(teachers, teacher)
 	}
-	return teachers, nil
+
+	// Get total count of teachers
+	var totalteaches int
+	err = db.QueryRow("SELECT COUNT(*) FROM teachers").Scan(&totalteaches)
+	if err != nil {
+		utils.ErrorHandler(err, "")
+		totalteaches = 0
+	}
+	return teachers, totalteaches, nil
 }
 
 func GetTeacherById(id int) (models.Teacher, error) {

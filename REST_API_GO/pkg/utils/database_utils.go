@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -94,4 +95,16 @@ func isValidSortField(field string) bool {
 		"subject":    true,
 	}
 	return validFields[field]
+}
+
+func GetPaginationParams(r *http.Request) (int, int) {
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		page = 1
+	}
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		limit = 10
+	}
+	return page, limit
 }
