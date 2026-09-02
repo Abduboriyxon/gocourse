@@ -288,9 +288,14 @@ func GetStudentsByTeacherId(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetStudentCountByTeacherId(w http.ResponseWriter, r *http.Request) {
-	teacherId := r.PathValue("id")
+	// admin, manager, exec
+	_, err := utils.AuthorizeUser(r.Context().Value(utils.ContextKey("role")).(string), "admin", "manager", "exec")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	var studentCount int
+	teacherId := r.PathValue("id")
 
 	studentCount, err := sqlconnect.GetStudentCountByTeacherIdFromDb(teacherId)
 	if err != nil {
