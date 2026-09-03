@@ -20,12 +20,13 @@ func ResponseTimeMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 		w.Header().Set("X-Response-Time", duration.String())
 		next.ServeHTTP(wrappedWriter, r)
+
 		// Log the request details
 		duration = time.Since(start)
 		fmt.Printf("Methods: %s, URL: %s, Status: %d, Duration: %v\n", r.Method, r.URL, wrappedWriter.status, duration.String())
 		fmt.Println("Sent response from response time middleware")
-	}) 
-		
+	})
+
 }
 
 // responseWriter

@@ -22,7 +22,7 @@ func Cors(next http.Handler) http.Handler {
 		origin := r.Header.Get("Origin")
 		fmt.Println(origin)
 
-		if isOriginAllowed(origin){
+		if isOriginAllowed(origin) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		} else {
 			http.Error(w, "Not allowed by CORS", http.StatusForbidden)
@@ -41,14 +41,14 @@ func Cors(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w,r)
+		next.ServeHTTP(w, r)
 		fmt.Println("CORS Middleware ends...")
 	})
 }
 
 func isOriginAllowed(origin string) bool {
-	for _, allowedOrigin := range allowedOrigins{
-		if origin == allowedOrigin{
+	for _, allowedOrigin := range allowedOrigins {
+		if origin == allowedOrigin {
 			return true
 		}
 	}
