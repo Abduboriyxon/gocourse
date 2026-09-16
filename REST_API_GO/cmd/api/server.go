@@ -7,10 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	mw "restapi/internal/api/middlewares"
 	routers "restapi/internal/api/router"
-	"restapi/pkg/utils"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -59,48 +56,49 @@ func main() {
 	// Load envirnoment variables from the embedded .env file
 	loadEnvFromEmbeddedFile()
 
-	fmt.Println("envirnoment variables CERT_FILE:", os.Getenv("CERT_FILE"))
+	// fmt.Println("envirnoment variables CERT_FILE:", os.Getenv("CERT_FILE"))
 
 	port := os.Getenv("API_PORT")
 
 	// cert := "cert.pem"
 	// key := "key.pem"
 
-	cert := os.Getenv("CERT_FILE")
-	key := os.Getenv("KEY_FILE")
+	// cert := os.Getenv("CERT_FILE")
+	// key := os.Getenv("KEY_FILE")
 
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 	}
 
-	rl := mw.NewRateLimiter(5, time.Minute)
+	// rl := mw.NewRateLimiter(5, time.Minute)
 
-	hppOptions := mw.HPPOptions{
-		CheckQuery:                  true,
-		CheckBody:                   true,
-		CheckBodyOnlyForContentType: "application/x-www-form-urlencoded",
-		Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
-	}
+	// hppOptions := mw.HPPOptions{
+	// 	CheckQuery:                  true,
+	// 	CheckBody:                   true,
+	// 	CheckBodyOnlyForContentType: "application/x-www-form-urlencoded",
+	// 	Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
+	// }
 
 	// secureMux := mw.Cors(rl.Middleware(mw.ResponseTimeMiddleware(mw.SecurityHeaders(mw.Compression(mw.Hpp(hppOptions)(mux))))))
 	// secureMux := jwtMiddleware(mw.SecurityHeaders(router))
 	// secureMux := (mw.SecurityHeaders(router))
 	// secureMux := mw.XSSMiddleware(router)
 	router := routers.MainRouter()
-	jwtMiddleware := mw.MiddlewaresExcludePaths(mw.JWTMiddleware, "/execs/login", "/execs/forgotpassword", "/execs/resetpassword/reset")
-	secureMux := utils.ApplyMiddlewares(router, mw.SecurityHeaders, mw.Compression, mw.Hpp(hppOptions), mw.XSSMiddleware, jwtMiddleware, mw.ResponseTimeMiddleware, rl.Middleware, mw.Cors)
+	// jwtMiddleware := mw.MiddlewaresExcludePaths(mw.JWTMiddleware, "/execs/login", "/execs/forgotpassword", "/execs/resetpassword/reset")
+	// secureMux := utils.ApplyMiddlewares(router, mw.SecurityHeaders, mw.Compression, mw.Hpp(hppOptions), mw.XSSMiddleware, jwtMiddleware, mw.ResponseTimeMiddleware, rl.Middleware, mw.Cors)
+	// secureMux := utils.ApplyMiddlewares(router, mw.SecurityHeaders, mw.Compression, mw.Hpp(hppOptions), mw.XSSMiddleware, jwtMiddleware, mw.ResponseTimeMiddleware, mw.Cors)
 
 	// create custom srever
 	server := &http.Server{
 		Addr: port,
 		// Handler: mux,
-		Handler: secureMux,
+		Handler: router,
 		// Handler: mw.Cors(mux.ServeHTTP),
 		TLSConfig: tlsConfig,
 	}
 
 	fmt.Println("Starting server on port", port)
-	err := server.ListenAndServeTLS(cert, key)
+	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
